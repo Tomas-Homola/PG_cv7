@@ -98,4 +98,7 @@ private slots:
 
 	void on_radioButton_Parallel_clicked();
 	void on_radioButton_Perspective_clicked();
+
+	void on_doubleSpinBox_ClipNear_valueChanged(double value);
+	void on_doubleSpinBox_ClipFar_valueChanged(double value);
 };

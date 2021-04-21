@@ -44,9 +44,9 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>-72</y>
+         <y>-158</y>
          <width>241</width>
-         <height>718</height>
+         <height>823</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -181,8 +181,16 @@
              <layout class="QVBoxLayout" name="verticalLayout_2">
               <item>
                <widget class="QDoubleSpinBox" name="doubleSpinBox_CameraDistance">
+                <property name="font">
+                 <font>
+                  <family>Leelawadee UI</family>
+                  <pointsize>10</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
                 <property name="minimum">
-                 <double>-10.000000000000000</double>
+                 <double>3.000000000000000</double>
                 </property>
                 <property name="maximum">
                  <double>50.000000000000000</double>
@@ -303,6 +311,9 @@
               </item>
               <item>
                <widget class="QSlider" name="horizontalSlider_Azimut">
+                <property name="minimum">
+                 <number>-360</number>
+                </property>
                 <property name="maximum">
                  <number>360</number>
                 </property>
@@ -314,6 +325,78 @@
                 </property>
                 <property name="tickPosition">
                  <enum>QSlider::NoTicks</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_ClipNear">
+                <property name="font">
+                 <font>
+                  <family>Leelawadee UI</family>
+                  <pointsize>10</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Clip near</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_ClipNear">
+                <property name="font">
+                 <font>
+                  <family>Leelawadee UI</family>
+                  <pointsize>10</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="maximum">
+                 <double>200.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.500000000000000</double>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_ClipFar">
+                <property name="font">
+                 <font>
+                  <family>Leelawadee UI</family>
+                  <pointsize>10</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Clip far</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_ClipFar">
+                <property name="font">
+                 <font>
+                  <family>Leelawadee UI</family>
+                  <pointsize>10</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="minimum">
+                 <double>50.000000000000000</double>
+                </property>
+                <property name="maximum">
+                 <double>250.000000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.500000000000000</double>
+                </property>
+                <property name="value">
+                 <double>205.000000000000000</double>
                 </property>
                </widget>
               </item>
@@ -344,10 +427,10 @@
               <item>
                <widget class="QSlider" name="horizontalSlider_dx">
                 <property name="minimum">
-                 <number>-400</number>
+                 <number>-1000</number>
                 </property>
                 <property name="maximum">
-                 <number>400</number>
+                 <number>1000</number>
                 </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -372,10 +455,10 @@
               <item>
                <widget class="QSlider" name="horizontalSlider_dy">
                 <property name="minimum">
-                 <number>-400</number>
+                 <number>-1000</number>
                 </property>
                 <property name="maximum">
-                 <number>400</number>
+                 <number>1000</number>
                 </property>
                 <property name="orientation">
                  <enum>Qt::Horizontal</enum>
@@ -395,7 +478,7 @@
                  <double>0.010000000000000</double>
                 </property>
                 <property name="maximum">
-                 <double>3.000000000000000</double>
+                 <double>20.000000000000000</double>
                 </property>
                 <property name="singleStep">
                  <double>0.100000000000000</double>

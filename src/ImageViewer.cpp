@@ -14,8 +14,8 @@ ImageViewer::ImageViewer(QWidget* parent) : QMainWindow(parent), ui(new Ui::Imag
 	ui->pushButton_Export->setEnabled(false);
 	ui->pushButton_Import->setEnabled(true);
 
-	ui->label_Zenit->setText(QString("Zenit %1").arg(ui->horizontalSlider_Zenit->value()));
-	ui->label_Azimut->setText(QString("Azimut %1").arg(ui->horizontalSlider_Azimut->value()));
+	camera.setClipNearDistance(ui->doubleSpinBox_ClipNear->value());
+	camera.setClipFarDistance(ui->doubleSpinBox_ClipFar->value());
 }
 
 void ImageViewer::infoMessage(QString message)
@@ -655,9 +655,6 @@ void ImageViewer::subdivideOctahedron(int divisions)
 void ImageViewer::parallelProjection()
 {
 	ViewerWidget* vW = getCurrentViewerWidget();
-	// len kvoli vykreslovaniu suradnic bodov
-	QPainter* painter = vW->getPainter();
-	QPen pen; pen.setColor(QColor("#FFFFFF")); painter->setPen(pen);
 
 	double xBefore = 0.0, yBefore = 0.0, zBefore = 0.0;
 	double xAfter = 0.0, yAfter = 0.0, zAfter = 0.0;
@@ -668,7 +665,8 @@ void ImageViewer::parallelProjection()
 	double sY = (double)(vW->getImgHeight() / 2);
 	int dx = ui->horizontalSlider_dx->value();
 	int dy = ui->horizontalSlider_dy->value();
-	double objectScale = ui->doubleSpinBox_ObjectScale->value();
+	double objectScale = ui->doubleSpinBox_ObjectScale->value() * 1.5;
+	double distance = 0.0;
 
 	double a = camera.getVector_n().x;
 	double b = camera.getVector_n().y;
@@ -693,9 +691,13 @@ void ImageViewer::parallelProjection()
 		edge_prev = (*faces)[i]->getEdge()->getEdgePrevious();
 
 		// prvy bod
-		xBefore = edge->getVertexOrigin()->getX() * objectScale;
-		yBefore = edge->getVertexOrigin()->getY() * objectScale;
-		zBefore = edge->getVertexOrigin()->getZ() * objectScale;
+		xBefore = edge->getVertexOrigin()->getX();
+		yBefore = edge->getVertexOrigin()->getY();
+		zBefore = edge->getVertexOrigin()->getZ();
+
+		distance = qSqrt((xBefore - a) * (xBefore - a) + (yBefore - b) * (yBefore - b) + (zBefore - c) * (zBefore - c)) * camera.getScaleValue();
+		if ((distance < camera.getClipNearDistance()) || (distance > camera.getClipFarDistance()))
+			continue;
 
 		temp = (a * xBefore + b * yBefore + c * zBefore) / (a * a + b * b + c * c);
 
@@ -707,15 +709,17 @@ void ImageViewer::parallelProjection()
 		x2D = v.x * xAfter + v.y * yAfter + v.z * zAfter;
 		y2D = u.x * xAfter + u.y * yAfter + u.z * zAfter;
 
-		newPoints[0].setX(x2D * camera.getScaleValue() + sX + dx);
-		newPoints[0].setY(y2D * camera.getScaleValue() + sY + dy);
-		if (octahedron.Vertices().size() == 6)
-			painter->drawText(newPoints[0], QString("%1, %2, %3").arg(xBefore).arg(yBefore).arg(zBefore));
+		newPoints[0].setX(x2D * camera.getScaleValue() * objectScale + sX + dx);
+		newPoints[0].setY(y2D * camera.getScaleValue() * objectScale + sY + dy);
 
 		// druhy bod
-		xBefore = edge_next->getVertexOrigin()->getX() * objectScale;
-		yBefore = edge_next->getVertexOrigin()->getY() * objectScale;
-		zBefore = edge_next->getVertexOrigin()->getZ() * objectScale;
+		xBefore = edge_next->getVertexOrigin()->getX();
+		yBefore = edge_next->getVertexOrigin()->getY();
+		zBefore = edge_next->getVertexOrigin()->getZ();
+
+		distance = qSqrt((xBefore - a) * (xBefore - a) + (yBefore - b) * (yBefore - b) + (zBefore - c) * (zBefore - c)) * camera.getScaleValue();
+		if ((distance < camera.getClipNearDistance()) || (distance > camera.getClipFarDistance()))
+			continue;
 
 		temp = (a * xBefore + b * yBefore + c * zBefore) / (a * a + b * b + c * c);
 
@@ -727,15 +731,17 @@ void ImageViewer::parallelProjection()
 		x2D = v.x * xAfter + v.y * yAfter + v.z * zAfter;
 		y2D = u.x * xAfter + u.y * yAfter + u.z * zAfter;
 
-		newPoints[1].setX(x2D * camera.getScaleValue() + sX + dx);
-		newPoints[1].setY(y2D * camera.getScaleValue() + sY + dy);
-		if (octahedron.Vertices().size() == 6)
-			painter->drawText(newPoints[1], QString("%1, %2, %3").arg(xBefore).arg(yBefore).arg(zBefore));
+		newPoints[1].setX(x2D * camera.getScaleValue() * objectScale + sX + dx);
+		newPoints[1].setY(y2D * camera.getScaleValue() * objectScale + sY + dy);
 
 		// treti bod
-		xBefore = edge_prev->getVertexOrigin()->getX() * objectScale;
-		yBefore = edge_prev->getVertexOrigin()->getY() * objectScale;
-		zBefore = edge_prev->getVertexOrigin()->getZ() * objectScale;
+		xBefore = edge_prev->getVertexOrigin()->getX();
+		yBefore = edge_prev->getVertexOrigin()->getY();
+		zBefore = edge_prev->getVertexOrigin()->getZ();
+
+		distance = qSqrt((xBefore - a) * (xBefore - a) + (yBefore - b) * (yBefore - b) + (zBefore - c) * (zBefore - c)) * camera.getScaleValue();
+		if ((distance < camera.getClipNearDistance()) || (distance > camera.getClipFarDistance()))
+			continue;
 
 		temp = (a * xBefore + b * yBefore + c * zBefore) / (a * a + b * b + c * c);
 
@@ -747,10 +753,8 @@ void ImageViewer::parallelProjection()
 		x2D = v.x * xAfter + v.y * yAfter + v.z * zAfter;
 		y2D = u.x * xAfter + u.y * yAfter + u.z * zAfter;
 
-		newPoints[2].setX(x2D * camera.getScaleValue() + sX + dx);
-		newPoints[2].setY(y2D * camera.getScaleValue() + sY + dy);
-		if (octahedron.Vertices().size() == 6)
-			painter->drawText(newPoints[2], QString("%1, %2, %3").arg(xBefore).arg(yBefore).arg(zBefore));
+		newPoints[2].setX(x2D * camera.getScaleValue() * objectScale + sX + dx);
+		newPoints[2].setY(y2D * camera.getScaleValue() * objectScale + sY + dy);
 
 		vW->createGeometry(newPoints, QColor("#FFFFFF"), QColor("#000000"), 0);
 	}
@@ -760,9 +764,6 @@ void ImageViewer::parallelProjection()
 void ImageViewer::perspectiveProjection()
 {
 	ViewerWidget* vW = getCurrentViewerWidget();
-	// len kvoli vykreslovaniu suradnic bodov
-	QPainter* painter = vW->getPainter();
-	QPen pen; pen.setColor(QColor("#FFFFFF")); painter->setPen(pen);
 
 	double xBefore = 0.0, yBefore = 0.0, zBefore = 0.0;
 	double xAfter = 0.0, yAfter = 0.0, zAfter = 0.0;
@@ -773,7 +774,8 @@ void ImageViewer::perspectiveProjection()
 	double midPointY = (double)(vW->getImgHeight() / 2);
 	int dx = ui->horizontalSlider_dx->value();
 	int dy = ui->horizontalSlider_dy->value();
-	double objectScale = ui->doubleSpinBox_ObjectScale->value();
+	double objectScale = ui->doubleSpinBox_ObjectScale->value() * 1.5;
+	double distance = 0.0;
 
 	double a = camera.getVector_n().x;
 	double b = camera.getVector_n().y;
@@ -804,9 +806,13 @@ void ImageViewer::perspectiveProjection()
 
 
 		// prvy bod
-		xBefore = edge->getVertexOrigin()->getX() * objectScale;
-		yBefore = edge->getVertexOrigin()->getY() * objectScale;
-		zBefore = edge->getVertexOrigin()->getZ() * objectScale;
+		xBefore = edge->getVertexOrigin()->getX();
+		yBefore = edge->getVertexOrigin()->getY();
+		zBefore = edge->getVertexOrigin()->getZ();
+
+		distance = qSqrt((xBefore - a) * (xBefore - a) + (yBefore - b) * (yBefore - b) + (zBefore - c) * (zBefore - c)) * camera.getScaleValue();
+		if ((distance < camera.getClipNearDistance()) || (distance > camera.getClipFarDistance()))
+			continue;
 
 		temp = (a * xBefore + b * yBefore + c * zBefore) / (a * (S.x - xBefore) + b * (S.y - yBefore) + c * (S.z - zBefore));
 
@@ -819,16 +825,17 @@ void ImageViewer::perspectiveProjection()
 		x2D = v.x * xAfter + v.y * yAfter + v.z * zAfter;
 		y2D = u.x * xAfter + u.y * yAfter + u.z * zAfter;
 
-		newPoints[0].setX(x2D * camera.getScaleValue() + midPointX + dx);
-		newPoints[0].setY(y2D * camera.getScaleValue() + midPointY + dy);
-		if (octahedron.Vertices().size() == 6)
-			painter->drawText(newPoints[0], QString("%1, %2, %3").arg(xBefore).arg(yBefore).arg(zBefore));
-
+		newPoints[0].setX(x2D * camera.getScaleValue() * objectScale + midPointX + dx);
+		newPoints[0].setY(y2D * camera.getScaleValue() * objectScale + midPointY + dy);
 
 		// druhy bod
-		xBefore = edge_next->getVertexOrigin()->getX() * objectScale;
-		yBefore = edge_next->getVertexOrigin()->getY() * objectScale;
-		zBefore = edge_next->getVertexOrigin()->getZ() * objectScale;
+		xBefore = edge_next->getVertexOrigin()->getX();
+		yBefore = edge_next->getVertexOrigin()->getY();
+		zBefore = edge_next->getVertexOrigin()->getZ();
+
+		distance = qSqrt((xBefore - a) * (xBefore - a) + (yBefore - b) * (yBefore - b) + (zBefore - c) * (zBefore - c)) * camera.getScaleValue();
+		if ((distance < camera.getClipNearDistance()) || (distance > camera.getClipFarDistance()))
+			continue;
 
 		temp = (a * xBefore + b * yBefore + c * zBefore) / (a * (S.x - xBefore) + b * (S.y - yBefore) + c * (S.z - zBefore));
 
@@ -841,16 +848,17 @@ void ImageViewer::perspectiveProjection()
 		x2D = v.x * xAfter + v.y * yAfter + v.z * zAfter;
 		y2D = u.x * xAfter + u.y * yAfter + u.z * zAfter;
 
-		newPoints[1].setX(x2D * camera.getScaleValue() + midPointX + dx);
-		newPoints[1].setY(y2D * camera.getScaleValue() + midPointY + dy);
-		if (octahedron.Vertices().size() == 6)
-			painter->drawText(newPoints[1], QString("%1, %2, %3").arg(xBefore).arg(yBefore).arg(zBefore));
-
+		newPoints[1].setX(x2D * camera.getScaleValue() * objectScale + midPointX + dx);
+		newPoints[1].setY(y2D * camera.getScaleValue() * objectScale + midPointY + dy);
 
 		// treti bod
-		xBefore = edge_prev->getVertexOrigin()->getX() * objectScale;
-		yBefore = edge_prev->getVertexOrigin()->getY() * objectScale;
-		zBefore = edge_prev->getVertexOrigin()->getZ() * objectScale;
+		xBefore = edge_prev->getVertexOrigin()->getX();
+		yBefore = edge_prev->getVertexOrigin()->getY();
+		zBefore = edge_prev->getVertexOrigin()->getZ();
+
+		distance = qSqrt((xBefore - a) * (xBefore - a) + (yBefore - b) * (yBefore - b) + (zBefore - c) * (zBefore - c)) * camera.getScaleValue();
+		if ((distance < camera.getClipNearDistance()) || (distance > camera.getClipFarDistance()))
+			continue;
 
 		temp = (a * xBefore + b * yBefore + c * zBefore) / (a * (S.x - xBefore) + b * (S.y - yBefore) + c * (S.z - zBefore));
 
@@ -863,10 +871,9 @@ void ImageViewer::perspectiveProjection()
 		x2D = v.x * xAfter + v.y * yAfter + v.z * zAfter;
 		y2D = u.x * xAfter + u.y * yAfter + u.z * zAfter;
 
-		newPoints[2].setX(x2D * camera.getScaleValue() + midPointX + dx);
-		newPoints[2].setY(y2D * camera.getScaleValue() + midPointY + dy);
-		if (octahedron.Vertices().size() == 6)
-			painter->drawText(newPoints[2], QString("%1, %2, %3").arg(xBefore).arg(yBefore).arg(zBefore));
+		newPoints[2].setX(x2D * camera.getScaleValue() * objectScale + midPointX + dx);
+		newPoints[2].setY(y2D * camera.getScaleValue() * objectScale + midPointY + dy);
+
 
 		vW->createGeometry(newPoints, QColor("#FFFFFF"), QColor("#000000"), 0);
 	}
@@ -876,11 +883,11 @@ void ImageViewer::update3D()
 {
 	if (!octahedron.isEmpty())
 	{
-		if (ui->radioButton_Parallel->isChecked())
+		if (camera.getProjectionType() == Projection3D::ParallelProjection)
 		{
 			parallelProjection();
 		}
-		else if (ui->radioButton_Perspective->isChecked())
+		else if (camera.getProjectionType() == Projection3D::PerspectiveProjection)
 		{
 			perspectiveProjection();
 		}
@@ -1328,18 +1335,12 @@ void ImageViewer::on_pushButton_Import_clicked()
 void ImageViewer::on_horizontalSlider_Zenit_valueChanged(int angle)
 {
 	camera.setZenit((angle * M_PI) / 180.0);
-	ui->label_Zenit->setText(QString("Zenit %1").arg(angle));
 	update3D();
-	//qDebug() << "zenit:" << angle << " :: " << camera.getZenit();
-	//qDebug() << "camera:\nn:" << camera.getCoordinatesVector_n() << "\nu:" << camera.getCoordinatesVector_u() << "\nv:" << camera.getCoordinatesVector_v();
 }
 void ImageViewer::on_horizontalSlider_Azimut_valueChanged(int angle)
 {
 	camera.setAzimut((angle * M_PI) / 180.0);
-	ui->label_Azimut->setText(QString("Azimut %1").arg(angle));
 	update3D();
-	//qDebug() << "azimut:" << angle << " :: " << camera.getAzimut();
-	//qDebug() << "camera:\nn:" << camera.getCoordinatesVector_n() << "\nu:" << camera.getCoordinatesVector_u() << "\nv:" << camera.getCoordinatesVector_v();
 }
 
 void ImageViewer::on_doubleSpinBox_CameraDistance_valueChanged(double value)
@@ -1365,10 +1366,24 @@ void ImageViewer::on_horizontalSlider_dy_valueChanged(int dy)
 
 void ImageViewer::on_radioButton_Parallel_clicked()
 {
+	camera.setProjectionType(Projection3D::ParallelProjection);
 	update3D();
 }
 
 void ImageViewer::on_radioButton_Perspective_clicked()
 {
+	camera.setProjectionType(Projection3D::PerspectiveProjection);
+	update3D();
+}
+
+void ImageViewer::on_doubleSpinBox_ClipNear_valueChanged(double value)
+{
+	camera.setClipNearDistance(value);
+	update3D();
+}
+
+void ImageViewer::on_doubleSpinBox_ClipFar_valueChanged(double value)
+{
+	camera.setClipFarDistance(value);
 	update3D();
 }
